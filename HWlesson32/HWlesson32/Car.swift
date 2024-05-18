@@ -9,8 +9,18 @@ import Foundation
 import RealmSwift
 
 class Car: Object {
-    @objc dynamic var brand = ""
-    @objc dynamic var model = ""
-    @objc dynamic var color = ""
-    @objc dynamic var year = ""
+    @Persisted(primaryKey: true) var id: String
+    @Persisted var brand: String
+    @Persisted var model: String
+    @Persisted var color: String
+    @Persisted var year: String
+    
+    convenience init(brand: String, model: String, color: String, year: String) {
+        self.init()
+        
+        self.brand = brand
+        self.model = model
+        self.color = color
+        self.year = year
+    }
 }

@@ -16,7 +16,7 @@
 		A7A6A9B72BD0484C00D2843B /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = A7A6A9B62BD0484C00D2843B /* Realm */; };
 		A7A6A9B92BD0484C00D2843B /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A7A6A9B82BD0484C00D2843B /* RealmSwift */; };
 		A7A6A9BB2BF8FDE200D2843B /* RealmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A6A9BA2BF8FDE200D2843B /* RealmManager.swift */; };
-		A7A6A9BD2BF914AA00D2843B /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A6A9BC2BF914AA00D2843B /* Car.swift */; };
+		A7A6A9EB2BF93E2600D2843B /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7A6A9EA2BF93E2600D2843B /* Car.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,7 +29,7 @@
 		A73B1E632BC2F3AD00FAA0E4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A73B1E652BC2F3AD00FAA0E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A7A6A9BA2BF8FDE200D2843B /* RealmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmManager.swift; sourceTree = "<group>"; };
-		A7A6A9BC2BF914AA00D2843B /* Car.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Car.swift; sourceTree = "<group>"; };
+		A7A6A9EA2BF93E2600D2843B /* Car.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Car.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,10 +67,10 @@
 				A73B1E572BC2F3AC00FAA0E4 /* AppDelegate.swift */,
 				A73B1E592BC2F3AC00FAA0E4 /* SceneDelegate.swift */,
 				A73B1E5B2BC2F3AC00FAA0E4 /* ViewController.swift */,
+				A7A6A9EA2BF93E2600D2843B /* Car.swift */,
 				A7A6A9BA2BF8FDE200D2843B /* RealmManager.swift */,
 				A73B1E5D2BC2F3AC00FAA0E4 /* Main.storyboard */,
 				A73B1E602BC2F3AD00FAA0E4 /* Assets.xcassets */,
-				A7A6A9BC2BF914AA00D2843B /* Car.swift */,
 				A73B1E622BC2F3AD00FAA0E4 /* LaunchScreen.storyboard */,
 				A73B1E652BC2F3AD00FAA0E4 /* Info.plist */,
 			);
@@ -157,7 +157,7 @@
 			files = (
 				A73B1E5C2BC2F3AC00FAA0E4 /* ViewController.swift in Sources */,
 				A7A6A9BB2BF8FDE200D2843B /* RealmManager.swift in Sources */,
-				A7A6A9BD2BF914AA00D2843B /* Car.swift in Sources */,
+				A7A6A9EB2BF93E2600D2843B /* Car.swift in Sources */,
 				A73B1E582BC2F3AC00FAA0E4 /* AppDelegate.swift in Sources */,
 				A73B1E5A2BC2F3AC00FAA0E4 /* SceneDelegate.swift in Sources */,
 			);

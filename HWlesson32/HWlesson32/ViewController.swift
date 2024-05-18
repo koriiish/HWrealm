@@ -10,9 +10,7 @@ import RealmSwift
 
 class ViewController: UIViewController {
     
-    
-    
-    var realm : Realm!
+    var cars: [Car] = []
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -20,18 +18,20 @@ class ViewController: UIViewController {
         return tableView
     }()
     
-    var carsList: Results<Car> {
-        get {
-            return realm.objects(Car.self)
+    lazy var realm: Realm? = {
+        do {
+            let _realm = try Realm()
+            return _realm
+        } catch {
+            print(error.localizedDescription)
+            return nil
         }
-    }
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
         setupNavigation()
-        
-        realm = try! Realm()
     }
     
     private func setupTableView() {
@@ -48,6 +48,13 @@ class ViewController: UIViewController {
         ])
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         tableView.reloadData()
+        
+        guard let realm else {
+            presentFailureAlert("Cant get saved values")
+            return
+        }
+        
+        cars = realm.objects(Car.self).map{$0}
     }
     
     func setupNavigation() {
@@ -62,48 +69,81 @@ class ViewController: UIViewController {
     func showAlert() {
         let alertController = UIAlertController(title: "Add car", message: "Save your favourite cars", preferredStyle: .alert)
         
-//        alertController.addTextField { textField in
-//            self.brandToSave = textField.text ?? "brand"
-//            textField.placeholder = "Brand"
-//        }
-//        
-//        alertController.addTextField { textField in
-//            self.modelToSave = textField.text ?? "model"
-//            textField.placeholder = "Model"
-//        }
-//        
-//        alertController.addTextField { textField in
-//            self.colorToSave = textField.text ?? "color"
-//            textField.placeholder = "Color"
-//        }
-//        
-//        alertController.addTextField { textField in
-//            self.yearToSave = textField.text ?? "year"
-//            textField.placeholder = "Year"
-//        }
-        let car = Car()
-        try! self.realm.write({
-            self.realm.add(car)    // (9)
-            self.tableView.insertRows(at: [IndexPath.init(row: self.carsList.count-1, section: 0)], with: .automatic)
-        })
+        alertController.addTextField { textField in
+            // cars.brand = textField.text ?? "brand"
+            textField.placeholder = "Brand"
+        }
         
+        alertController.addTextField { textField in
+            textField.placeholder = "Model"
+        }
+        
+        alertController.addTextField { textField in
+            textField.placeholder = "Color"
+        }
+        
+        alertController.addTextField { textField in
+            textField.placeholder = "Year"
+        }
+        let okAction = UIAlertAction(title: "OK", style: .default) { [weak self]_ in
+            print("ok")
+            guard let textFields = alertController.textFields,
+                  textFields.count > 3,
+                  let brandToSave = textFields[0].text,
+                  let modelToSave = textFields[1].text,
+                  let colorToSave = textFields[2].text,
+                  let yearToSave = textFields[3].text else {
+                return
+            }
+            self?.addCar(brandToSave, modelToSave, colorToSave, yearToSave)
+        }
+        
+        alertController.addAction(okAction)
+        
+        let cancelAction = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        alertController.addAction(cancelAction)
+        
+        present(alertController, animated: true)
     }
+    
+    private func addCar(_ brand: String, _ model: String, _ color: String, _ year: String) {
+        let carObject = Car(brand: brand, model: model, color: color, year: year)
+        carObject.id = UUID().uuidString
+        guard let realm else {
+            presentFailureAlert("Something went wrong with database....")
+            return
+        }
+        
+        do {
+            try realm.write {
+                realm.add(carObject)
+            }
+            self.cars.append(carObject)
+            tableView.reloadData()
+        } catch {
+            print(error.localizedDescription)
+            presentFailureAlert(error.localizedDescription)
+        }
+        tableView.reloadData()
+    }
+    
+    private func presentFailureAlert(_ message: String) {
+        let alert = UIAlertController(title: "Failure", message: message, preferredStyle: .alert)
+        let cancelAction = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
 }
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-       // return RealmManager.shared.cars.count
-        return carsList.count
+        return cars.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell",
-        //                                            for: indexPath)
-        //        cell.textLabel?.text = carsArray[indexPath.row]
-        //        return cell
-        //
-       // let car = RealmManager.shared.cars[indexPath.row]
-        let car = carsList[indexPath.row]
+        let car = cars[indexPath.row]
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell",
                                                  for: indexPath)
         cell.textLabel?.text = car.brand
@@ -124,22 +164,51 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == .delete){
-          //  let item = RealmManager.shared.cars[indexPath.row]
-            let item = carsList[indexPath.row]
-            try! self.realm.write({
-                self.realm.delete(item)
-            })
-            tableView.deleteRows(at:[indexPath], with: .automatic)
+        if (editingStyle == .delete) {
+            guard let realm,
+                  cars.count > indexPath.row else { return }
+            let carId = cars[indexPath.row].id
+            
+            do {
+                let delitingCar = realm.object(ofType:Car.self, forPrimaryKey: carId)
+                guard let delitingCar else {
+                    presentFailureAlert("Cant identify the car")
+                    return
+                }
+                try realm.write {
+                    realm.delete(delitingCar)
+                    self.cars.remove(at: indexPath.row)
+                    tableView.reloadData()
+                }
+            } catch {
+                print(error.localizedDescription)
+                presentFailureAlert(error.localizedDescription)
+            }
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = carsList[indexPath.row]
-        try! self.realm.write({     // (6)
-            item.brand = item.brand
-        })
-        //refresh rows
-        tableView.reloadRows(at: [indexPath], with: .automatic)
+        tableView.deselectRow(at: indexPath, animated: true)
+        var myCar: Car?
+        
+        let message = """
+                Car brand: \(myCar?.brand ?? "I dont know brand")
+                Car model: \(myCar?.model ?? "I dont know model")
+                Car color: \(myCar?.color ?? "I dont know color"))
+                Car year: \(myCar?.year ?? "I dont know year"))
+                """
+        
+        let alert = UIAlertController(title: myCar?.brand,
+                                      message: message,
+                                      preferredStyle: .alert)
+        
+        let okAction = UIAlertAction(title: "OK", style: .default)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
+        alert.addAction(okAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
     }
+    
 }

@@ -15,17 +15,17 @@ class RealmManager {
     static let shared = RealmManager()
     
     
-    var cars: [Car] = []
+   // var cars: [Car] = []
     
-    lazy var realm: Realm? = {
-        do {
-            let _realm = try Realm()
-            return _realm
-        } catch {
-            print(error.localizedDescription)
-            return nil
-        }
-    }()
+//    lazy var realm: Realm? = {
+//        do {
+//            let _realm = try Realm()
+//            return _realm
+//        } catch {
+//            print(error.localizedDescription)
+//            return nil
+//        }
+//    }()
     
 //        func save(brand: String, model: String, color: String, year: String, completion: () -> ()) {
 //            let carObject = Car(brand: brand, model: model, color: color, year: year)
@@ -44,7 +44,7 @@ class RealmManager {
 //    
 //            completion()
 //        }
-//    
+    
 //        func delete(at index: Int, completion: () -> ()) {
 //            guard let realm else {
 //                return
