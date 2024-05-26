@@ -10,22 +10,14 @@ import RealmSwift
 
 class ViewController: UIViewController {
     
-    var cars: [Car] = []
+    var cars: [Car] {
+        RealmManager.shared.cars
+    }
     
     let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
-    }()
-    
-    lazy var realm: Realm? = {
-        do {
-            let _realm = try Realm()
-            return _realm
-        } catch {
-            print(error.localizedDescription)
-            return nil
-        }
     }()
     
     override func viewDidLoad() {
@@ -49,12 +41,6 @@ class ViewController: UIViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         tableView.reloadData()
         
-        guard let realm else {
-            presentFailureAlert("Cant get saved values")
-            return
-        }
-        
-        cars = realm.objects(Car.self).map{$0}
     }
     
     func setupNavigation() {
@@ -106,25 +92,21 @@ class ViewController: UIViewController {
         present(alertController, animated: true)
     }
     
-    private func addCar(_ brand: String, _ model: String, _ color: String, _ year: String) {
-        let carObject = Car(brand: brand, model: model, color: color, year: year)
-        carObject.id = UUID().uuidString
-        guard let realm else {
-            presentFailureAlert("Something went wrong with database....")
-            return
+    private func addCar( 
+        _ brand: String,
+        _ model: String,
+        _ color: String,
+        _ year: String
+    ) {
+        RealmManager.shared.addCar(
+            brand: brand,
+            model: model,
+            color: color,
+            year: year
+        ) { [weak self] in
+            self?.tableView.reloadData()
         }
         
-        do {
-            try realm.write {
-                realm.add(carObject)
-            }
-            self.cars.append(carObject)
-            tableView.reloadData()
-        } catch {
-            print(error.localizedDescription)
-            presentFailureAlert(error.localizedDescription)
-        }
-        tableView.reloadData()
     }
     
     private func presentFailureAlert(_ message: String) {
@@ -147,7 +129,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell",
                                                  for: indexPath)
         cell.textLabel?.text = car.brand
-        car.value(forKeyPath: "brand") as? String
         return cell
     }
     
@@ -165,40 +146,25 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == .delete) {
-            guard let realm,
-                  cars.count > indexPath.row else { return }
-            let carId = cars[indexPath.row].id
-            
-            do {
-                let delitingCar = realm.object(ofType:Car.self, forPrimaryKey: carId)
-                guard let delitingCar else {
-                    presentFailureAlert("Cant identify the car")
-                    return
-                }
-                try realm.write {
-                    realm.delete(delitingCar)
-                    self.cars.remove(at: indexPath.row)
-                    tableView.reloadData()
-                }
-            } catch {
-                print(error.localizedDescription)
-                presentFailureAlert(error.localizedDescription)
+            RealmManager.shared.delete(at: indexPath.row) { [weak self] in
+                self?.tableView.reloadData()
             }
         }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        var myCar: Car?
+        guard indexPath.row < cars.count else { return }
+        let myCar = cars[indexPath.row]
         
         let message = """
-                Car brand: \(myCar?.brand ?? "I dont know brand")
-                Car model: \(myCar?.model ?? "I dont know model")
-                Car color: \(myCar?.color ?? "I dont know color"))
-                Car year: \(myCar?.year ?? "I dont know year"))
+                Car brand: \(myCar.brand)
+                Car model: \(myCar.model)
+                Car color: \(myCar.color)
+                Car year: \(myCar.year)
                 """
         
-        let alert = UIAlertController(title: myCar?.brand,
+        let alert = UIAlertController(title: myCar.brand,
                                       message: message,
                                       preferredStyle: .alert)
         

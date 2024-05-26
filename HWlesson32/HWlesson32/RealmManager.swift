@@ -11,77 +11,72 @@ import RealmSwift
 
 class RealmManager {
     
-    private init() { }
+    private init() {
+        readAllCarsFromDatabase()
+    }
     static let shared = RealmManager()
     
+    var cars: [Car] = []
     
-   // var cars: [Car] = []
-    
-//    lazy var realm: Realm? = {
-//        do {
-//            let _realm = try Realm()
-//            return _realm
-//        } catch {
-//            print(error.localizedDescription)
-//            return nil
-//        }
-//    }()
-    
-//        func save(brand: String, model: String, color: String, year: String, completion: () -> ()) {
-//            let carObject = Car(brand: brand, model: model, color: color, year: year)
-//            guard let realm else {
-//                return
-//            }
-//    
-//            do {
-//                try realm.write {
-//                    realm.add(carObject)
-//                }
-//                cars.append(carObject)
-//            } catch {
-//                print(error.localizedDescription)
-//            }
-//    
-//            completion()
-//        }
-    
-//        func delete(at index: Int, completion: () -> ()) {
-//            guard let realm else {
-//                return
-//            }
-//    
-//            do {
-//                let deletingCar = realm.object(ofType: Car.self, forPrimaryKey: id)
-//                guard let deletingCar else {
-//    
-//                    return
-//                }
-//                try realm.write {
-//                    realm.delete(deletingCar)
-//                    cars.remove(at: indexPath.row)
-//                }
-//    
-//            } catch {
-//                print(error.localizedDescription)
-//            }
-//    
-//            completion()
-//        }
-//    
-//        func readCar(id: ObjectId) -> Car {
-//                guard let realm = RealmManager.shared.realm else {
-//    
-//                    return Car(brand: "No car", model: "-", color: "-", year: "-")
-//                }
-//    
-//                return realm.object(ofType: Car.self, forPrimaryKey: id) ?? Car(brand: "No car", model: "-", color: "-", year: "-")
-//            }
-//    
-//            func readAllCarsFromDatabase() {
-//                guard let realm else {
-//                    return
-//                }
-//                cars = realm.objects(Car.self).map { $0 }
-//            }
+    private var realm: Realm? = {
+        do {
+            let _realm = try Realm()
+            return _realm
+        } catch {
+            print(error.localizedDescription)
+            return nil
         }
+    }()
+    
+    func addCar(brand: String, model: String, color: String, year: String, completion: () -> ()) {
+        guard let realm else {
+            return
+        }
+        
+        let carObject = Car(brand: brand, model: model, color: color, year: year)
+        
+        carObject.id = UUID().uuidString
+        
+        do {
+            try realm.write {
+                realm.add(carObject)
+            }
+            self.cars.append(carObject)
+        } catch {
+            print(error.localizedDescription)
+        }
+        
+        completion()
+    }
+    
+    func delete(at index: Int, completion: () -> ()) {
+        guard let realm,
+            index < cars.count
+        else {
+            return
+        }
+        
+        guard index < cars.count else { return }
+        let deletingCar = cars[index]
+        
+        do {
+            try realm.write {
+                realm.delete(deletingCar)
+                cars.remove(at: index)
+            }
+            
+        } catch {
+            print(error.localizedDescription)
+        }
+        
+        completion()
+    }
+    
+    func readAllCarsFromDatabase() {
+        guard let realm else {
+            return
+        }
+        cars = realm.objects(Car.self).map { $0 }
+    }
+}
 
